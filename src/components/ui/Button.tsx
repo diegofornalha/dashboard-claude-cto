@@ -1,4 +1,5 @@
 import React, { ReactNode, ButtonHTMLAttributes } from 'react';
+import { cn } from '@/utils/cn';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
@@ -78,12 +79,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   return (
     <button
-      className={`
-        ${baseClasses}
-        ${variantClasses[variant]}
-        ${sizeClasses[size]}
-        ${className}
-      `}
+      className={cn(baseClasses, variantClasses[variant], sizeClasses[size], className)}
       disabled={disabled || loading}
       {...props}
     >

@@ -1,4 +1,5 @@
 import React, { HTMLAttributes, forwardRef } from 'react';
+import { cn } from '@/utils/cn';
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   variant?: 'default' | 'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'info';
@@ -43,28 +44,22 @@ export const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
     return (
       <span
         ref={ref}
-        className={`
-          ${baseStyles}
-          ${variantStyles[variant]}
-          ${sizeStyles[size]}
-          ${radiusStyles}
-          ${className}
-        `}
+        className={cn(baseStyles, variantStyles[variant], sizeStyles[size], radiusStyles, className)}
         {...props}
       >
         {dot && (
           <span 
-            className={`
-              inline-block rounded-full mr-1.5
-              ${size === 'sm' ? 'w-1.5 h-1.5' : size === 'md' ? 'w-2 h-2' : 'w-2.5 h-2.5'}
-              ${variant === 'default' ? 'bg-gray-500' : ''}
-              ${variant === 'primary' ? 'bg-blue-500' : ''}
-              ${variant === 'secondary' ? 'bg-gray-500' : ''}
-              ${variant === 'success' ? 'bg-green-500' : ''}
-              ${variant === 'danger' ? 'bg-red-500' : ''}
-              ${variant === 'warning' ? 'bg-yellow-500' : ''}
-              ${variant === 'info' ? 'bg-blue-500' : ''}
-            `}
+            className={cn(
+              'inline-block rounded-full mr-1.5',
+              size === 'sm' ? 'w-1.5 h-1.5' : size === 'md' ? 'w-2 h-2' : 'w-2.5 h-2.5',
+              variant === 'default' && 'bg-gray-500',
+              variant === 'primary' && 'bg-blue-500',
+              variant === 'secondary' && 'bg-gray-500',
+              variant === 'success' && 'bg-green-500',
+              variant === 'danger' && 'bg-red-500',
+              variant === 'warning' && 'bg-yellow-500',
+              variant === 'info' && 'bg-blue-500'
+            )}
             aria-hidden="true"
           />
         )}

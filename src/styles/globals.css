@@ -206,6 +206,59 @@ body {
   }
 }
 
+/* Toast Animations */
+@keyframes progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+.animate-progress {
+  animation: progress linear forwards;
+}
+
+/* Toast slide animations */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.toast-enter {
+  animation: slideInRight 300ms ease-out forwards;
+}
+
+.toast-exit {
+  animation: slideOutRight 300ms ease-in forwards;
+}
+
+/* Utility for line clamping */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -215,5 +268,15 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* Desabilita animações dos toasts em modo reduzido */
+  .toast-enter,
+  .toast-exit {
+    animation: none;
+  }
+
+  .animate-progress {
+    animation: none;
   }
 }

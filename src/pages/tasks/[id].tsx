@@ -36,7 +36,9 @@ const statusConfig = {
 const modelConfig = {
   haiku: { icon: '🌸', label: 'Haiku', description: 'Rápido e Econômico' },
   sonnet: { icon: '📝', label: 'Sonnet', description: 'Balanceado' },
-  opus: { icon: '🎭', label: 'Opus', description: 'Máxima Qualidade' }
+  opus: { icon: '🎭', label: 'Opus', description: 'Máxima Qualidade' },
+  // Fallback config for unknown models
+  default: { icon: '❓', label: 'Desconhecido', description: 'Modelo não reconhecido' }
 } as const;
 
 export default function TaskDetail() {
@@ -184,7 +186,7 @@ export default function TaskDetail() {
   if (!task) return null;
 
   const statusInfo = statusConfig[task.status];
-  const modelInfo = modelConfig[task.model];
+  const modelInfo = modelConfig[task.model] || modelConfig.opus;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
@@ -436,11 +438,16 @@ export default function TaskDetail() {
                     🔄 Atualizar Dados
                   </Button>
 
-                  <Link href="/tasks/create" className="block">
-                    <Button variant="outline" fullWidth>
-                      ➕ Criar Task Similar
-                    </Button>
-                  </Link>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      const message = `💡 Use o MCP para criar uma nova task:\n\nPara criar uma task similar, use o comando no MCP:\n\nmcp__claude-cto__create_task\n\nCom as seguintes configurações:\n• Modelo: ${task.model}\n• Diretório: ${task.working_directory}\n• Grupo de orquestração: ${task.orchestration_group || 'N/A'}`;
+                      alert(message);
+                    }}
+                    fullWidth
+                  >
+                    💡 Como Criar Task Similar
+                  </Button>
 
                   <Button
                     variant="ghost"

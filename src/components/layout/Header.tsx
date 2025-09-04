@@ -31,9 +31,8 @@ export function Header({ className }: HeaderProps) {
 
   const navigationItems = [
     { label: 'Dashboard', href: '/', active: true },
-    { label: 'Tasks', href: '/tasks' },
-    { label: 'Analytics', href: '/analytics' },
-    { label: 'Configurações', href: '/settings' },
+    { label: 'Tasks', href: '/tasks/list' },
+    { label: 'Sitemap', href: '/sitemap' },
   ]
 
   return (

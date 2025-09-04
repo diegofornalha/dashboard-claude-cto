@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '@/utils/cn';
 import { Button } from './Button';
 import { Skeleton, SkeletonCard } from './Skeleton';
 
@@ -30,7 +31,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
   );
 
   return (
-    <div className={`text-center py-16 px-6 animate-fade-in ${className}`}>
+    <div className={cn('text-center py-16 px-6 animate-fade-in', className)}>
       {icon || defaultIcon}
       
       <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
@@ -85,7 +86,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   );
 
   return (
-    <div className={`text-center py-16 px-6 animate-fade-in ${className}`}>
+    <div className={cn('text-center py-16 px-6 animate-fade-in', className)}>
       {icon || defaultIcon}
       
       <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
@@ -136,9 +137,9 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
   };
 
   return (
-    <div className={`text-center ${containerClasses[size]} px-6 animate-fade-in ${className}`}>
+    <div className={cn('text-center', containerClasses[size], 'px-6 animate-fade-in', className)}>
       <div className="flex items-center justify-center mb-6">
-        <div className={`${sizeClasses[size]} border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin`}></div>
+        <div className={cn(sizeClasses[size], 'border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin')}></div>
       </div>
       
       <p className="text-gray-600 dark:text-gray-400 font-medium">
@@ -160,7 +161,7 @@ export const SkeletonTaskCard: React.FC<SkeletonTaskCardProps> = ({
 }) => {
   return (
     <div 
-      className={`bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 animate-fade-in-up ${className}`}
+      className={cn('bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 animate-fade-in-up', className)}
       style={{
         animationDelay: `${index * 50}ms`
       }}
@@ -217,16 +218,17 @@ export const ProgressiveSkeleton: React.FC<ProgressiveSkeletonProps> = ({
   className = ''
 }) => {
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div className={cn('space-y-4', className)}>
       <div className="flex items-center justify-between mb-6">
         <Skeleton variant="text" width="200px" height="24px" animation="wave" />
         <div className="flex items-center gap-2">
           {Array.from({ length: steps }).map((_, i) => (
             <div
               key={i}
-              className={`w-2 h-2 rounded-full transition-colors duration-300 ${
+              className={cn(
+                'w-2 h-2 rounded-full transition-colors duration-300',
                 i <= currentStep ? 'bg-blue-500' : 'bg-gray-200 dark:bg-gray-700'
-              }`}
+              )}
             />
           ))}
         </div>
@@ -256,7 +258,7 @@ export const StaggeredSkeleton: React.FC<StaggeredSkeletonProps> = ({
   renderItem
 }) => {
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div className={cn('space-y-4', className)}>
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
@@ -285,8 +287,8 @@ export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
   className = ''
 }) => {
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+    <div className={cn('flex items-center gap-2', className)}>
+      <div className={cn('w-2 h-2 rounded-full', isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500')} />
       <span className="text-xs text-gray-500 dark:text-gray-400">
         {isConnected ? 'Conectado' : 'Desconectado'}
         {lastUpdate && (

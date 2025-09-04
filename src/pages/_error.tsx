@@ -15,9 +15,11 @@ interface ErrorProps {
 const ErrorPage: NextPage<ErrorProps> = ({ statusCode, hasGetInitialPropsRun, err, title }) => {
   const router = useRouter()
   const [isReloading, setIsReloading] = useState(false)
-  const [errorId, setErrorId] = useState<string>('loading')
+  const [errorId, setErrorId] = useState<string>('')
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     // Gerar ID do erro no cliente
     setErrorId(Date.now().toString(36))
     
@@ -134,7 +136,7 @@ const ErrorPage: NextPage<ErrorProps> = ({ statusCode, hasGetInitialPropsRun, er
 
         <div className="text-sm text-gray-500 dark:text-gray-500">
           <p>Se o problema persistir, entre em contato com o suporte.</p>
-          {typeof window !== 'undefined' && (
+          {mounted && errorId && (
             <p className="mt-1 font-mono text-xs">
               Error ID: {errorId}
             </p>

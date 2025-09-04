@@ -1,154 +1,107 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 
-// Tipo para as preferências de notificação
-interface NotificationPreferences {
-  completed: boolean;
-  failed: boolean;
-  soundEnabled: boolean;
+export type NotificationType = 'success' | 'error' | 'info' | 'warning';
+
+export interface NotificationItem {
+  id: string;
+  type: NotificationType;
+  title: string;
+  message?: string;
+  duration?: number;
+  createdAt: number;
 }
 
-// Tipo para o contexto
 interface NotificationContextType {
-  preferences: NotificationPreferences;
-  updatePreferences: (newPreferences: Partial<NotificationPreferences>) => void;
-  requestPermission: () => Promise<boolean>;
-  sendNotification: (title: string, body: string, type: 'completed' | 'failed') => void;
-  playSound: () => void;
-  hasPermission: boolean;
+  notifications: NotificationItem[];
+  showSuccess: (title: string, message?: string, duration?: number) => void;
+  showError: (title: string, message?: string, duration?: number) => void;
+  showInfo: (title: string, message?: string, duration?: number) => void;
+  showWarning: (title: string, message?: string, duration?: number) => void;
+  removeNotification: (id: string) => void;
+  clearAll: () => void;
 }
 
-// Som de notificação em base64 (beep curto)
-const NOTIFICATION_SOUND_BASE64 = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+H2u2snBSV+zPLZeSsFJnvL8N2QQAoUXrTp66hVFApGn+H2u2snBSV+zPLZeSsFJ3vM8N6QQAoTXrPo66hWFAlEnuD2vGwnBSR7zPLYeisFJ3vM8N6QQAoTXrTp6qhXFAlEnuD3vGwnBSR7zfHYeisFJ3vM8N+RQAoTXrTp66pYEwlEnuH3vGsnBiR7zfHYeyoGJnzN8N+RQAoTX7Tp66pYEwlFnuH3vGsnBiN8zfHYeyoGJnzN8N+RQAoTX7Tp66pYEwlFnuH3vGsnBiN8zfHYeyoGJnzN8N+RQAoTX7Tp66pYEwlFnuH3vGsnBiN8zfHYeyoGJnzN8N+RQAoTX7Tp66pYEwlFnuH3vGsnBiN8zfHYeyoGJnzN8N+RQAoTX7Tp66pYEwlFnuH3vGsnBiN8zfHYeyoGJnzN8N+RQAoTX7Tp66pYEwlFnuH3vGsnBiN8zfHYeyoGJnzN8N+RQAoTX7Tp66pYEwlFnuH3vGsnBiN8zfHYeyoGJnzN8N+RQAoTX7Tp66pYEwlFnuH3vGsnBiN8zfHYeyoGJnzN8N+RQAoTX7Tp66pYEwlFnuH3vGsnBiN8zfHYeyoGJnzN8N+RQAoTX7Tp66pYEwlFnuH3vGsnBiN8zfHYeyoGJnzN8N+RQAoTX7Tp66pYEwlFnuH3vGsnBiN8zfHYeyoGJnzN8N+RQAoTX7Tp66pYEwlFnuH3vGsnBiN8zfHYeyoGJnzN8N+RQAoTX7Tp66pYEwlFnuH3vGsnBiN8zfHYeyoGJnzN8N+RQAoTX7Tp66pYEwlFnuH3vGsnBiN8zfHYeyoGJnzN8N+RQAoTX7Tp66pYEwlFnuH3vGsnBiN8zfHYeyoGJnzN8N+RQAoTX7Tp66pYEwlFnuH3vGsnBiN8zfHYeyoGJnzN8N+RQAoTX7Tp66pYEwlFnuH3vGsnBiN8zfHYeyoGJnzN8N+RQAoTX7Tp66pYEwlFnuH3vGsnBiN8zfHYeyoGJnzN8N+RQAoTX7Tp66pYEwlFnuH3vGsnBiN8zfHYeyoGJnzN8N+RQAoTX7Tp66pYEwlFnuH3vGsnBiN8zfHYeyoGJnzN8N+RQAo=';
-
-// Contexto
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
-// Provider
+export const useNotification = () => {
+  const context = useContext(NotificationContext);
+  if (!context) {
+    throw new Error('useNotification deve ser usado dentro de um NotificationProvider');
+  }
+  return context;
+};
+
 interface NotificationProviderProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
-export function NotificationProvider({ children }: NotificationProviderProps) {
-  const [preferences, setPreferences] = useState<NotificationPreferences>({
-    completed: false,
-    failed: false,
-    soundEnabled: true,
-  });
-  
-  const [hasPermission, setHasPermission] = useState<boolean>(false);
-  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
+export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
-  // Carregar preferências do localStorage ao montar
-  useEffect(() => {
-    const savedPreferences = localStorage.getItem('notification_preferences');
-    if (savedPreferences) {
-      try {
-        const parsed = JSON.parse(savedPreferences);
-        setPreferences(parsed);
-      } catch (error) {
-        console.error('Erro ao carregar preferências de notificação:', error);
-      }
-    }
-
-    // Verificar permissões atuais
-    checkPermission();
-
-    // Criar elemento de áudio
-    const audio = new Audio(NOTIFICATION_SOUND_BASE64);
-    audio.preload = 'auto';
-    setAudioElement(audio);
+  const generateId = useCallback(() => {
+    return Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
   }, []);
 
-  // Verificar permissões atuais
-  const checkPermission = () => {
-    if ('Notification' in window) {
-      setHasPermission(Notification.permission === 'granted');
-    }
-  };
+  const removeNotification = useCallback((id: string) => {
+    setNotifications(prev => prev.filter(notification => notification.id !== id));
+  }, []);
 
-  // Solicitar permissão do browser
-  const requestPermission = async (): Promise<boolean> => {
-    if (!('Notification' in window)) {
-      console.log('Este navegador não suporta notificações');
-      return false;
-    }
+  const addNotification = useCallback((
+    type: NotificationType,
+    title: string,
+    message?: string,
+    duration: number = 5000
+  ) => {
+    const id = generateId();
+    const notification: NotificationItem = {
+      id,
+      type,
+      title,
+      message,
+      duration,
+      createdAt: Date.now(),
+    };
 
-    try {
-      const permission = await Notification.requestPermission();
-      const granted = permission === 'granted';
-      setHasPermission(granted);
-      return granted;
-    } catch (error) {
-      console.error('Erro ao solicitar permissão:', error);
-      return false;
-    }
-  };
+    setNotifications(prev => [...prev, notification]);
 
-  // Atualizar preferências
-  const updatePreferences = (newPreferences: Partial<NotificationPreferences>) => {
-    const updated = { ...preferences, ...newPreferences };
-    setPreferences(updated);
-    localStorage.setItem('notification_preferences', JSON.stringify(updated));
-  };
-
-  // Reproduzir som de notificação
-  const playSound = () => {
-    if (preferences.soundEnabled && audioElement) {
-      audioElement.currentTime = 0;
-      audioElement.play().catch(error => {
-        console.error('Erro ao reproduzir som:', error);
-      });
-    }
-  };
-
-  // Enviar notificação
-  const sendNotification = (title: string, body: string, type: 'completed' | 'failed') => {
-    // Verificar se deve enviar notificação baseado nas preferências
-    if (!preferences[type]) {
-      return;
+    // Auto-remove após a duração especificada
+    if (duration > 0) {
+      setTimeout(() => {
+        removeNotification(id);
+      }, duration);
     }
 
-    // Reproduzir som se habilitado
-    if (preferences.soundEnabled) {
-      playSound();
-    }
+    return id;
+  }, [generateId, removeNotification]);
 
-    // Enviar notificação do browser se tiver permissão
-    if (hasPermission) {
-      try {
-        const notification = new Notification(title, {
-          body,
-          icon: type === 'completed' ? '/icons/success.png' : '/icons/error.png',
-          badge: '/icons/badge.png',
-          tag: `task-${type}`,
-          requireInteraction: type === 'failed', // Notificações de erro ficam até serem clicadas
-        });
+  const showSuccess = useCallback((title: string, message?: string, duration?: number) => {
+    return addNotification('success', title, message, duration);
+  }, [addNotification]);
 
-        // Auto-fechar notificações de sucesso após 5 segundos
-        if (type === 'completed') {
-          setTimeout(() => {
-            notification.close();
-          }, 5000);
-        }
+  const showError = useCallback((title: string, message?: string, duration?: number) => {
+    return addNotification('error', title, message, duration);
+  }, [addNotification]);
 
-        // Opcional: adicionar evento de clique
-        notification.onclick = () => {
-          window.focus();
-          notification.close();
-        };
-      } catch (error) {
-        console.error('Erro ao enviar notificação:', error);
-      }
-    }
-  };
+  const showInfo = useCallback((title: string, message?: string, duration?: number) => {
+    return addNotification('info', title, message, duration);
+  }, [addNotification]);
+
+  const showWarning = useCallback((title: string, message?: string, duration?: number) => {
+    return addNotification('warning', title, message, duration);
+  }, [addNotification]);
+
+  const clearAll = useCallback(() => {
+    setNotifications([]);
+  }, []);
 
   const value: NotificationContextType = {
-    preferences,
-    updatePreferences,
-    requestPermission,
-    sendNotification,
-    playSound,
-    hasPermission,
+    notifications,
+    showSuccess,
+    showError,
+    showInfo,
+    showWarning,
+    removeNotification,
+    clearAll,
   };
 
   return (
@@ -156,16 +109,4 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
       {children}
     </NotificationContext.Provider>
   );
-}
-
-// Hook personalizado para usar o contexto
-export function useNotifications(): NotificationContextType {
-  const context = useContext(NotificationContext);
-  if (context === undefined) {
-    throw new Error('useNotifications deve ser usado dentro de NotificationProvider');
-  }
-  return context;
-}
-
-// Exportar o contexto para uso direto se necessário
-export { NotificationContext };
+};

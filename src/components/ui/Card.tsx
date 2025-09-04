@@ -1,4 +1,5 @@
 import React, { HTMLAttributes, forwardRef } from 'react';
+import { cn } from '@/utils/cn';
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   padding?: 'none' | 'sm' | 'md' | 'lg';
@@ -43,14 +44,14 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
     return (
       <div
         ref={ref}
-        className={`
-          bg-white dark:bg-gray-800 rounded-lg
-          ${paddingStyles[padding]}
-          ${shadowStyles[shadow]}
-          ${hoverStyles}
-          ${selectedStyles}
-          ${className}
-        `}
+        className={cn(
+          'bg-white dark:bg-gray-800 rounded-lg',
+          paddingStyles[padding],
+          shadowStyles[shadow],
+          hoverStyles,
+          selectedStyles,
+          className
+        )}
         aria-selected={selected}
         {...props}
       >
@@ -69,7 +70,7 @@ export const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>(
     return (
       <div
         ref={ref}
-        className={`pb-4 border-b border-gray-200 dark:border-gray-700 ${className}`}
+        className={cn('pb-4 border-b border-gray-200 dark:border-gray-700', className)}
         {...props}
       >
         {children}
@@ -87,7 +88,7 @@ export const CardBody = forwardRef<HTMLDivElement, CardBodyProps>(
     return (
       <div
         ref={ref}
-        className={`py-4 ${className}`}
+        className={cn('py-4', className)}
         {...props}
       >
         {children}
@@ -105,7 +106,7 @@ export const CardFooter = forwardRef<HTMLDivElement, CardFooterProps>(
     return (
       <div
         ref={ref}
-        className={`pt-4 border-t border-gray-200 dark:border-gray-700 ${className}`}
+        className={cn('pt-4 border-t border-gray-200 dark:border-gray-700', className)}
         {...props}
       >
         {children}

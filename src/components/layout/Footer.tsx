@@ -32,7 +32,7 @@ export const Footer: React.FC<FooterProps> = ({
       title: 'Product',
       links: [
         { label: 'Dashboard', href: '/' },
-        { label: 'Tasks', href: '/tasks' },
+        { label: 'Tasks', href: '/tasks/list' },
         { label: 'Orchestration', href: '/orchestration' },
         { label: 'Admin', href: '/admin' }
       ]

@@ -1,105 +1,211 @@
-import React from 'react';
-import Link from 'next/link';
+import { motion } from 'framer-motion'
+import { 
+  Map, 
+  Home, 
+  ListTodo, 
+  ExternalLink,
+  ChevronRight
+} from 'lucide-react'
+import Link from 'next/link'
 
-const Sitemap: React.FC = () => {
-  const pages = [
-    // Principal
-    { path: '/', name: '🏠 Home', category: 'Principal' },
-    { path: '/sitemap', name: '🗺️ Sitemap (esta página)', category: 'Principal' },
-    { path: '/settings', name: '⚙️ Configurações', category: 'Principal' },
-    
-    // Tasks
-    { path: '/tasks/list', name: '📝 Lista de Tasks', category: 'Tasks' },
-    
-    // Orchestration
-    { path: '/orchestration', name: '🎭 Orchestration Dashboard', category: 'Orchestration' },
-    
-    // Monitor
-    { path: '/monitor', name: '📍 Monitor Dashboard', category: 'Monitor' },
-    { path: '/monitor/activities', name: '📊 Feed de Atividades', category: 'Monitor' },
-    { path: '/monitor/notifications', name: '🔔 Configurações de Notificações', category: 'Monitor' },
-    
-    // Analytics
-    { path: '/analytics', name: '📊 Analytics Dashboard', category: 'Analytics' },
-    
-    // API Test (útil para desenvolvimento)
-    { path: '/test_tasks_api.html', name: '🧪 Teste da API', category: 'Desenvolvimento' },
-  ];
+interface RouteSection {
+  title: string
+  icon: React.ReactNode
+  routes: {
+    path: string
+    name: string
+    description: string
+    icon: React.ReactNode
+  }[]
+}
 
-  // Agrupar páginas por categoria
-  const categories = pages.reduce((acc, page) => {
-    const category = page.category || 'Outros';
-    if (!acc[category]) {
-      acc[category] = [];
+export default function Sitemap() {
+  const sections: RouteSection[] = [
+    {
+      title: 'Páginas Principais',
+      icon: <Home className="w-5 h-5" />,
+      routes: [
+        {
+          path: '/',
+          name: 'Dashboard',
+          description: 'Página inicial com visão geral do sistema e estatísticas',
+          icon: <Home className="w-5 h-5" />
+        },
+        {
+          path: '/sitemap',
+          name: 'Mapa do Site',
+          description: 'Visualização completa de todas as páginas disponíveis',
+          icon: <Map className="w-5 h-5" />
+        }
+      ]
+    },
+    {
+      title: 'Gerenciamento de Tarefas',
+      icon: <ListTodo className="w-5 h-5" />,
+      routes: [
+        {
+          path: '/tasks/list',
+          name: 'Lista de Tarefas',
+          description: 'Visualize e gerencie todas as tarefas do sistema',
+          icon: <ListTodo className="w-5 h-5" />
+        }
+      ]
+    },
+  ]
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
     }
-    acc[category].push(page);
-    return acc;
-  }, {} as Record<string, typeof pages>);
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut"
+      }
+    }
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2 text-center">
-          🗺️ Sitemap Completo
-        </h1>
-        <p className="text-center text-gray-600 dark:text-gray-400 mb-8">
-          Todas as rotas disponíveis no Dashboard Master
-        </p>
-        
-        {Object.entries(categories).map(([category, categoryPages]) => (
-          <div key={category} className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4 px-2">
-              {category}
-            </h2>
-            <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
-              <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-                {categoryPages.map((page) => (
-                  <li key={page.path}>
-                    <Link href={page.path}>
-                      <div className="px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-base font-medium text-indigo-600 dark:text-indigo-400 truncate">
-                              {page.name}
-                            </p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                              {page.path}
-                            </p>
-                          </div>
-                          <div className="ml-2 flex-shrink-0 flex">
-                            <svg
-                              className="h-5 w-5 text-gray-400"
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 20 20"
-                              fill="currentColor"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mb-8"
+        >
+          <div className="flex items-center mb-4">
+            <div className="p-3 bg-gradient-to-r from-primary-500 to-secondary-600 rounded-lg mr-4">
+              <Map className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                Mapa do Site
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
+                Navegue por todas as páginas e funcionalidades disponíveis
+              </p>
             </div>
           </div>
-        ))}
+        </motion.div>
 
-        <div className="mt-8 text-center">
-          <Link href="/">
-            <span className="text-indigo-600 hover:text-indigo-500 cursor-pointer">
-              ← Voltar para Home
+        {/* Breadcrumb */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="mb-6"
+        >
+          <nav className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+            <Link href="/" className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+              Home
+            </Link>
+            <ChevronRight className="w-4 h-4 mx-2" />
+            <span className="text-gray-900 dark:text-white font-medium">Mapa do Site</span>
+          </nav>
+        </motion.div>
+
+        {/* Sections */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="space-y-8"
+        >
+          {sections.map((section, sectionIndex) => (
+            <motion.div
+              key={section.title}
+              variants={itemVariants}
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
+            >
+              {/* Section Header */}
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-750 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center">
+                  <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg mr-3">
+                    {section.icon}
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    {section.title}
+                  </h2>
+                </div>
+              </div>
+
+              {/* Routes Grid */}
+              <div className="p-6">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {section.routes.map((route, routeIndex) => (
+                    <motion.div
+                      key={route.path}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ 
+                        delay: sectionIndex * 0.1 + routeIndex * 0.05,
+                        duration: 0.3
+                      }}
+                    >
+                      <Link href={route.path}>
+                        <motion.div
+                          className="group p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-400 hover:shadow-md transition-all duration-200 cursor-pointer h-full"
+                          whileHover={{ y: -2 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <div className="flex items-start">
+                            <div className="p-2 bg-gray-100 dark:bg-gray-700 group-hover:bg-primary-100 dark:group-hover:bg-primary-900/30 rounded-lg transition-colors duration-200 mr-3 flex-shrink-0">
+                              {route.icon}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-1">
+                                <h3 className="text-base font-semibold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                                  {route.name}
+                                </h3>
+                                <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors flex-shrink-0 ml-2" />
+                              </div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                                {route.description}
+                              </p>
+                              <div className="mt-2">
+                                <code className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-gray-600 dark:text-gray-300">
+                                  {route.path}
+                                </code>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Footer Info */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="mt-12 text-center"
+        >
+          <div className="inline-flex items-center px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <div className="w-2 h-2 bg-success-500 rounded-full animate-pulse mr-2" />
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              Todas as páginas estão acessíveis e funcionando
             </span>
-          </Link>
-        </div>
+          </div>
+        </motion.div>
       </div>
     </div>
-  );
-};
-
-export default Sitemap;
+  )
+}

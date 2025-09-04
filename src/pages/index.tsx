@@ -8,6 +8,7 @@ import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Skeleton } from '../components/ui/Skeleton';
 import { getSystemStatus, getTasks } from '../lib/api';
+import { useNotification } from '../contexts/NotificationContext';
 
 
 const HomePage: React.FC = () => {
@@ -55,7 +56,7 @@ const HomePage: React.FC = () => {
         setMetrics(stats);
       } catch (err) {
         console.error('❌ Erro ao carregar métricas:', err);
-        console.error('Stack trace:', err.stack);
+        console.error('Stack trace:', (err as Error)?.stack);
         setError('Erro ao carregar métricas do sistema');
         // Se houver erro, define valores padrão zerados
         setMetrics({
@@ -188,7 +189,7 @@ const HomePage: React.FC = () => {
         )}
 
         {/* Main Navigation Cards */}
-        <Grid cols={1} colsMd={2} colsLg={2} gap="lg" className="mb-12">
+        <Grid cols={1} colsMd={2} colsLg={3} gap="lg" className="mb-12">
           {/* Tasks Card */}
           <Card hoverable className="group hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 transform hover:-translate-y-1 bg-white dark:bg-gray-800 border-2 hover:border-blue-500/50">
             <CardBody className="p-8">
@@ -222,38 +223,6 @@ const HomePage: React.FC = () => {
             </CardBody>
           </Card>
 
-          {/* Create Task Card */}
-          <Card hoverable className="group hover:shadow-2xl hover:shadow-green-500/10 transition-all duration-300 transform hover:-translate-y-1 bg-white dark:bg-gray-800 border-2 hover:border-green-500/50">
-            <CardBody className="p-8">
-              <div className="flex items-center mb-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
-                  <span className="text-2xl">➕</span>
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    Nova Task
-                  </h2>
-                  <p className="text-sm text-green-600 dark:text-green-400 font-medium">Criação Rápida</p>
-                </div>
-              </div>
-              
-              <p className="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
-                Crie novas tarefas diretamente pela interface web com configurações avançadas.
-              </p>
-              
-              <Stack direction="vertical" spacing="sm">
-                <Link href="/tasks/create" className="group/link flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors duration-200">
-                  <span className="text-gray-700 dark:text-gray-300 font-medium">✨ Criar Nova Task</span>
-                  <svg className="w-4 h-4 text-gray-400 group-hover/link:text-green-500 group-hover/link:translate-x-1 transition-all duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </Link>
-                <div className="p-3 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                  <span className="text-gray-600 dark:text-gray-400 text-sm">💡 Configure modelo, prompt e diretório</span>
-                </div>
-              </Stack>
-            </CardBody>
-          </Card>
 
           {/* Status Card */}
           <Card hoverable className="group hover:shadow-2xl hover:shadow-cyan-500/10 transition-all duration-300 transform hover:-translate-y-1 bg-white dark:bg-gray-800 border-2 hover:border-cyan-500/50">
@@ -327,34 +296,6 @@ const HomePage: React.FC = () => {
                   </svg>
                 </Button>
                 
-                <Button 
-                  variant="outline"
-                  onClick={() => {
-                    console.log('🔄 Testando API...');
-                    fetch('http://localhost:8001/api/v1/tasks?limit=10')
-                      .then(r => {
-                        console.log('Response status:', r.status);
-                        return r.json();
-                      })
-                      .then(data => {
-                        console.log('✅ Dados da API:', data);
-                        alert(`API OK! ${data.length} tarefas encontradas`);
-                      })
-                      .catch(err => {
-                        console.error('❌ Erro na API:', err);
-                        alert('Erro ao testar API');
-                      });
-                  }}
-                  className="w-full justify-between group/btn hover:bg-rose-50 dark:hover:bg-rose-900/20 border-rose-200 dark:border-rose-700 hover:border-rose-300 dark:hover:border-rose-600"
-                >
-                  <span className="flex items-center">
-                    <span className="mr-3">📡</span>
-                    <span>Testar API</span>
-                  </span>
-                  <svg className="w-4 h-4 text-gray-400 group-hover/btn:text-rose-500 group-hover/btn:translate-x-1 transition-all duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </Button>
               </Stack>
             </CardBody>
           </Card>
