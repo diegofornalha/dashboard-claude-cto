@@ -10,8 +10,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Grid, GridItem } from '@/components/ui/Grid';
 import { Stack } from '@/components/ui/Stack';
 import { Skeleton, SkeletonCard } from '@/components/ui/Skeleton';
-import { ErrorState, EmptyState, LoadingState, SkeletonTaskCard, ConnectionStatus } from '@/components/ui/States';
-import { tokens } from '../../utils/design-tokens';
+import { ErrorState, EmptyState, LoadingState, SkeletonTaskCard } from '@/components/ui/States';
 import { McpApi } from '@/services/mcp-api';
 
 // Types
@@ -309,9 +308,11 @@ export default function TasksList() {
               />
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
-                  <h3 className="font-bold text-gray-900 dark:text-white text-lg hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
-                    {task.identifier}
-                  </h3>
+                  <Link href={`/tasks/${task.id}`}>
+                    <h3 className="font-bold text-gray-900 dark:text-white text-lg hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
+                      {task.identifier}
+                    </h3>
+                  </Link>
                   {task.orchestration_group && (
                     <Badge variant="default" size="sm" className="text-xs">
                       🎭 {task.orchestration_group}
@@ -365,12 +366,16 @@ export default function TasksList() {
             </div>
             
             <div className="flex gap-1">
-              <Button size="sm" variant="secondary" className="text-xs px-2 py-1">
-                👁️ Ver
-              </Button>
-              <Button size="sm" variant="secondary" className="text-xs px-2 py-1">
-                ✏️ Editar
-              </Button>
+              <Link href={`/tasks/${task.id}`}>
+                <Button size="sm" variant="secondary" className="text-xs px-2 py-1">
+                  👁️ Ver
+                </Button>
+              </Link>
+              <Link href={`/tasks/create`}>
+                <Button size="sm" variant="secondary" className="text-xs px-2 py-1">
+                  ➕ Criar Nova
+                </Button>
+              </Link>
             </div>
           </div>
         </Stack>
@@ -393,9 +398,11 @@ export default function TasksList() {
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
-            <h3 className="font-medium text-gray-900 dark:text-white truncate">
-              {task.identifier}
-            </h3>
+            <Link href={`/tasks/${task.id}`}>
+              <h3 className="font-medium text-gray-900 dark:text-white truncate hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
+                {task.identifier}
+              </h3>
+            </Link>
             <Badge variant={getStatusBadgeVariant(task.status)} size="sm">
               {task.status}
             </Badge>
