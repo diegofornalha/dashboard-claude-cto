@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { cn } from '@/utils/cn';
 import { PageLayout } from '@/components/layout/PageLayout';
@@ -10,6 +10,7 @@ import { Grid } from '@/components/ui/Grid';
 import { Stack } from '@/components/ui/Stack';
 import { ErrorState, EmptyState, LoadingState } from '@/components/ui/States';
 import { McpApi } from '@/services/mcp-api';
+import { useWebNotifications } from '@/hooks/useWebNotifications';
 
 // Types
 interface Task {
@@ -36,6 +37,42 @@ export default function TasksList() {
   const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set());
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('all');
+  const previousTasksRef = useRef<Task[]>([]);
+  const { notifyTaskStarted, notifyTaskCompleted, notifyTaskFailed } = useWebNotifications();
+
+  // Check for task status changes and send notifications
+  const checkTaskChanges = (newTasks: Task[], oldTasks: Task[]) => {
+    if (oldTasks.length === 0) return; // Skip on first load
+
+    newTasks.forEach(newTask => {
+      const oldTask = oldTasks.find(t => t.id === newTask.id);
+      
+      if (!oldTask) {
+        // New task appeared
+        if (newTask.status === 'running') {
+          notifyTaskStarted(newTask.execution_prompt || `Task #${newTask.id}`, parseInt(newTask.id));
+        }
+      } else if (oldTask.status !== newTask.status) {
+        // Status changed
+        const taskName = newTask.execution_prompt || `Task #${newTask.id}`;
+        const taskId = parseInt(newTask.id);
+        
+        switch (newTask.status) {
+          case 'running':
+            if (oldTask.status === 'pending') {
+              notifyTaskStarted(taskName, taskId);
+            }
+            break;
+          case 'completed':
+            notifyTaskCompleted(taskName, taskId);
+            break;
+          case 'failed':
+            notifyTaskFailed(taskName, undefined, taskId);
+            break;
+        }
+      }
+    });
+  };
 
   // Fetch tasks from API
   const fetchTasks = async () => {
@@ -43,6 +80,14 @@ export default function TasksList() {
       setLoading(true);
       const apiTasks = await McpApi.getTasks();
       console.log('Tasks carregadas:', apiTasks);
+      
+      // Check for changes and notify
+      if (previousTasksRef.current.length > 0) {
+        checkTaskChanges(apiTasks, previousTasksRef.current);
+      }
+      
+      // Update state
+      previousTasksRef.current = apiTasks;
       setTasks(apiTasks);
       setError(null);
     } catch (err) {

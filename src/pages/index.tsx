@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { Container } from '../components/ui/Container';
 import { Grid, GridItem } from '../components/ui/Grid';
 import { Stack } from '../components/ui/Stack';
@@ -9,6 +10,7 @@ import { Button } from '../components/ui/Button';
 import { Skeleton } from '../components/ui/Skeleton';
 import { getSystemStatus, getTasks } from '../lib/api';
 import { useNotification } from '../contexts/NotificationContext';
+import { useWebNotifications } from '../hooks/useWebNotifications';
 
 
 const HomePage: React.FC = () => {
@@ -17,6 +19,8 @@ const HomePage: React.FC = () => {
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { permission, preferences, requestPermission } = useWebNotifications();
+  const router = useRouter();
 
   useEffect(() => {
     setIsMounted(true);
@@ -284,7 +288,9 @@ const HomePage: React.FC = () => {
               <Stack direction="vertical" spacing="sm">
                 <Button 
                   variant="outline"
-                  onClick={() => window.location.reload()}
+                  onClick={() => {
+                    router.replace(router.asPath)
+                  }}
                   className="w-full justify-between group/btn hover:bg-rose-50 dark:hover:bg-rose-900/20 border-rose-200 dark:border-rose-700 hover:border-rose-300 dark:hover:border-rose-600"
                 >
                   <span className="flex items-center">
@@ -294,6 +300,50 @@ const HomePage: React.FC = () => {
                   <svg className="w-4 h-4 text-gray-400 group-hover/btn:text-rose-500 group-hover/btn:translate-x-1 transition-all duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
+                </Button>
+
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    if (permission === 'default') {
+                      requestPermission();
+                    } else {
+                      router.push('/notifications');
+                    }
+                  }}
+                  className="w-full justify-between group/btn hover:bg-rose-50 dark:hover:bg-rose-900/20 border-rose-200 dark:border-rose-700 hover:border-rose-300 dark:hover:border-rose-600"
+                >
+                  <span className="flex items-center">
+                    <span className="mr-3">🔔</span>
+                    <span>
+                      {permission === 'granted' && preferences.enabled 
+                        ? 'Notificações Ativas'
+                        : permission === 'granted' 
+                        ? 'Configurar Notificações'
+                        : permission === 'denied'
+                        ? 'Notificações Bloqueadas'
+                        : 'Ativar Notificações'}
+                    </span>
+                  </span>
+                  {permission === 'granted' && preferences.enabled ? (
+                    <span className="flex items-center">
+                      <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></span>
+                      <svg className="w-4 h-4 text-gray-400 group-hover/btn:text-rose-500 group-hover/btn:translate-x-1 transition-all duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
+                  ) : permission === 'default' ? (
+                    <span className="flex items-center">
+                      <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                      <svg className="w-4 h-4 text-gray-400 group-hover/btn:text-rose-500 group-hover/btn:translate-x-1 transition-all duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
+                  ) : (
+                    <svg className="w-4 h-4 text-gray-400 group-hover/btn:text-rose-500 group-hover/btn:translate-x-1 transition-all duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  )}
                 </Button>
                 
               </Stack>

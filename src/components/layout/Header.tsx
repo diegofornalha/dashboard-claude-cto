@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Zap, Moon, Sun, Menu, X } from 'lucide-react'
+import { Zap, Moon, Sun, Menu, X, Bell } from 'lucide-react'
 import { cn } from '@/utils/cn'
+import { useWebNotifications } from '@/hooks/useWebNotifications'
+import { useRouter } from 'next/router'
 
 interface HeaderProps {
   className?: string
@@ -11,6 +13,8 @@ export function Header({ className }: HeaderProps) {
   const [darkMode, setDarkMode] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
+  const { permission, preferences } = useWebNotifications()
+  const router = useRouter()
 
   // Effect para hidratação e detecção de dark mode
   useEffect(() => {
@@ -32,6 +36,7 @@ export function Header({ className }: HeaderProps) {
   const navigationItems = [
     { label: 'Dashboard', href: '/', active: true },
     { label: 'Tasks', href: '/tasks/list' },
+    { label: 'Notificações', href: '/notifications' },
     { label: 'Sitemap', href: '/sitemap' },
   ]
 
@@ -80,6 +85,25 @@ export function Header({ className }: HeaderProps) {
 
           {/* Actions */}
           <div className="flex items-center space-x-4">
+            {/* Notification Settings */}
+            {isHydrated && (
+              <motion.button
+                onClick={() => router.push('/notifications')}
+                className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 relative"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                aria-label="Configurações de notificações"
+              >
+                <Bell className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                {permission === 'granted' && preferences.enabled && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                )}
+                {permission === 'default' && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-yellow-500 rounded-full" />
+                )}
+              </motion.button>
+            )}
+
             {/* Dark Mode Toggle */}
             {isHydrated && (
               <motion.button

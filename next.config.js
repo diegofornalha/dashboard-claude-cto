@@ -91,6 +91,25 @@ const nextConfig = {
       },
     ]
   },
+  
+  // Configuração para Service Worker
+  async headers() {
+    return [
+      {
+        source: '/service-worker.js',
+        headers: [
+          {
+            key: 'Service-Worker-Allowed',
+            value: '/'
+          },
+          {
+            key: 'Cache-Control',
+            value: 'no-cache'
+          }
+        ]
+      }
+    ]
+  },
 }
 
 module.exports = nextConfig

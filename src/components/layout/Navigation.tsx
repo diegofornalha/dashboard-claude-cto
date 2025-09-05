@@ -17,6 +17,7 @@ interface NavigationProps {
 const defaultNavItems: NavItem[] = [
   { label: 'Dashboard', href: '/' },
   { label: 'Tasks', href: '/tasks/list' },
+  { label: 'Notificações', href: '/notifications' },
   { label: 'Sitemap', href: '/sitemap' }
 ];
 

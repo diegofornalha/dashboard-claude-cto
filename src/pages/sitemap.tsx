@@ -3,6 +3,7 @@ import {
   Map, 
   Home, 
   ListTodo, 
+  Bell,
   ExternalLink,
   ChevronRight
 } from 'lucide-react'
@@ -48,6 +49,18 @@ export default function Sitemap() {
           name: 'Lista de Tarefas',
           description: 'Visualize e gerencie todas as tarefas do sistema',
           icon: <ListTodo className="w-5 h-5" />
+        }
+      ]
+    },
+    {
+      title: 'Sistema',
+      icon: <Bell className="w-5 h-5" />,
+      routes: [
+        {
+          path: '/notifications',
+          name: 'Notificações',
+          description: 'Configure notificações do navegador para alertas de tarefas',
+          icon: <Bell className="w-5 h-5" />
         }
       ]
     },
