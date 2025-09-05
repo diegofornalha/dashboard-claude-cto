@@ -19,6 +19,7 @@ interface Task {
   status: 'pending' | 'running' | 'completed' | 'failed';
   created_at: string;
   updated_at: string;
+  started_at?: string;
   execution_prompt: string;
   model: 'opus' | 'sonnet' | 'haiku';
   working_directory: string;
@@ -35,7 +36,7 @@ export default function TasksList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set());
-  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [autoRefresh, setAutoRefresh] = useState(true); // Auto-refresh ON por padrão
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const previousTasksRef = useRef<Task[]>([]);
   const { notifyTaskStarted, notifyTaskCompleted, notifyTaskFailed } = useWebNotifications();
@@ -227,6 +228,62 @@ export default function TasksList() {
     }
   };
 
+  // Detectar se a tarefa está travada (rodando por mais de 1 hora)
+  const isTaskStuck = (task: Task) => {
+    if (task.status !== 'running') return false;
+    if (!task.started_at) return false;
+    
+    try {
+      const startTime = new Date(task.started_at).getTime();
+      const now = Date.now();
+      const hourInMs = 3600000; // 1 hora em ms
+      
+      return (now - startTime) > hourInMs;
+    } catch {
+      return false;
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    if (!confirm('Deseja excluir esta tarefa travada?')) return;
+    
+    try {
+      const success = await McpApi.deleteTask(taskId);
+      if (success) {
+        alert('Tarefa excluída com sucesso!');
+        fetchTasks();
+      } else {
+        alert('Erro ao excluir tarefa');
+      }
+    } catch (err) {
+      console.error('Erro ao excluir tarefa:', err);
+      alert('Erro ao excluir tarefa');
+    }
+  };
+
+  const handleDeleteAllStuckTasks = async () => {
+    const stuckTasks = tasks.filter(task => isTaskStuck(task));
+    if (stuckTasks.length === 0) {
+      alert('Não há tarefas travadas para excluir');
+      return;
+    }
+    
+    if (!confirm(`Deseja excluir ${stuckTasks.length} tarefas travadas?`)) return;
+    
+    let deletedCount = 0;
+    for (const task of stuckTasks) {
+      try {
+        const success = await McpApi.deleteTask(task.id);
+        if (success) deletedCount++;
+      } catch (err) {
+        console.error(`Erro ao excluir tarefa ${task.id}:`, err);
+      }
+    }
+    
+    alert(`${deletedCount} de ${stuckTasks.length} tarefas travadas foram excluídas`);
+    fetchTasks();
+  };
+
   const TaskCard: React.FC<{ task: Task }> = ({ task }) => (
     <Card 
       hoverable 
@@ -237,40 +294,61 @@ export default function TasksList() {
     >
       <CardBody className="p-6">
         {/* Status Badge - Positioned absolutely in top-right corner */}
-        <div className="absolute top-4 right-4">
-          <Badge 
-            variant={getStatusBadgeVariant(task.status)}
-            className={`
-              text-xs font-medium shadow-sm
-              ${task.status === 'running' ? 'animate-pulse' : ''}
-              ${task.status === 'completed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800' : ''}
-              ${task.status === 'failed' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800' : ''}
-              ${task.status === 'pending' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800' : ''}
-              ${task.status === 'running' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800' : ''}
-            `}
-          >
-            <div className="flex items-center gap-1">
-              {task.status === 'running' && (
-                <div className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
-              )}
-              {task.status === 'completed' && (
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-              )}
-              {task.status === 'failed' && (
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              )}
-              {task.status === 'pending' && (
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                </svg>
-              )}
-              <span className="capitalize">{task.status}</span>
-            </div>
-          </Badge>
+        <div className="absolute top-4 right-4 flex items-center gap-2">
+          {isTaskStuck(task) ? (
+            <>
+              <button
+                onClick={() => handleDeleteTask(task.id)}
+                className="p-1.5 bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+                title="Excluir tarefa travada"
+              >
+                🗑️
+              </button>
+              <Badge 
+                variant="danger"
+                className="text-xs font-medium shadow-sm animate-pulse bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800"
+              >
+                <div className="flex items-center gap-1">
+                  <span>⚠️</span>
+                  <span>Travada</span>
+                </div>
+              </Badge>
+            </>
+          ) : (
+            <Badge 
+              variant={getStatusBadgeVariant(task.status)}
+              className={`
+                text-xs font-medium shadow-sm
+                ${task.status === 'running' ? 'animate-pulse' : ''}
+                ${task.status === 'completed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800' : ''}
+                ${task.status === 'failed' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800' : ''}
+                ${task.status === 'pending' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800' : ''}
+                ${task.status === 'running' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800' : ''}
+              `}
+            >
+              <div className="flex items-center gap-1">
+                {task.status === 'running' && (
+                  <div className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                )}
+                {task.status === 'completed' && (
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                )}
+                {task.status === 'failed' && (
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                )}
+                {task.status === 'pending' && (
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                  </svg>
+                )}
+                <span className="capitalize">{task.status}</span>
+              </div>
+            </Badge>
+          )}
         </div>
 
         <Stack direction="vertical" spacing="sm">
@@ -361,6 +439,17 @@ export default function TasksList() {
       >
         🧹 Limpar
       </Button>
+      
+      {tasks.some(task => isTaskStuck(task)) && (
+        <Button 
+          variant="danger" 
+          size="sm"
+          onClick={handleDeleteAllStuckTasks}
+          className="bg-red-600 hover:bg-red-700 text-white"
+        >
+          🗑️ Excluir Todas Travadas ({tasks.filter(task => isTaskStuck(task)).length})
+        </Button>
+      )}
     </Stack>
   );
 

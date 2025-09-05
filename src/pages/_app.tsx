@@ -3,14 +3,16 @@ import Head from 'next/head'
 import { useEffect } from 'react'
 import '@/styles/globals.css'
 import { NotificationProvider } from '@/contexts/NotificationContext'
+import { WebSocketProvider, WebSocketStatus } from '@/contexts/WebSocketContext'
 import ToastContainer from '@/components/ui/ToastContainer'
 import { ServiceWorker } from '@/components/ServiceWorker'
-import { useTaskNotifications } from '@/hooks/useTaskNotifications'
+import { useTaskNotificationsWS } from '@/hooks/useTaskNotificationsWS'
 
-function MyApp({ Component, pageProps }: AppProps) {
-  // Ativar monitoramento de tasks
-  useTaskNotifications({
+function AppContent({ Component, pageProps }: AppProps) {
+  // Ativar monitoramento de tasks com WebSocket
+  useTaskNotificationsWS({
     enabled: true,
+    useWebSocket: true,
     pollInterval: 5000
   });
 
@@ -25,7 +27,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   }, [])
 
   return (
-    <NotificationProvider>
+    <>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>CTO Dashboard - Admin Panel</title>
@@ -33,6 +35,17 @@ function MyApp({ Component, pageProps }: AppProps) {
       <ServiceWorker />
       <Component {...pageProps} />
       <ToastContainer />
+      <WebSocketStatus />
+    </>
+  )
+}
+
+function MyApp(props: AppProps) {
+  return (
+    <NotificationProvider>
+      <WebSocketProvider autoConnect={true}>
+        <AppContent {...props} />
+      </WebSocketProvider>
     </NotificationProvider>
   )
 }

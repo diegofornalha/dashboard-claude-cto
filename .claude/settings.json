@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "Write(**)",
+      "Edit(**)",
+      "MultiEdit(**)",
+      "NotebookEdit(**)",
+      "Bash(**)",
+      "Task(**)",
+      "TodoWrite(**)",
+      "mcp__claude-cto__create_task",
+      "mcp__claude-cto__get_task_status",
+      "mcp__claude-cto__list_tasks",
+      "mcp__claude-cto__get_task_logs"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "projectContext": {
+    "name": "Dashboard Claude CTO",
+    "description": "Dashboard web para monitoramento do Claude CTO",
+    "mainLanguages": ["TypeScript", "JavaScript", "React"],
+    "framework": "Next.js 14",
+    "defaultModel": "haiku",
+    "autoApprove": {
+      "fileOperations": true,
+      "bashCommands": true,
+      "mcpTools": true
+    }
+  }
+}

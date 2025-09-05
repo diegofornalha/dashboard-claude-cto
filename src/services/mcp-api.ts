@@ -269,6 +269,45 @@ export async function getActivities(limit: number = 50): Promise<Activity[]> {
 }
 
 /**
+ * Obter logs de uma tarefa
+ */
+export async function getTaskLogs(taskId: string): Promise<{ logs: string; error?: string }> {
+  // Primeiro tentar via MCP tools que sabemos que funciona
+  try {
+    const mcpResponse = await api.post('/mcp/tools/get_task_logs', {
+      tool: 'mcp__claude-cto__get_task_logs',
+      arguments: {
+        task_id: parseInt(taskId)
+      }
+    })
+    
+    if (mcpResponse.data?.result?.logs) {
+      return { logs: mcpResponse.data.result.logs }
+    } else if (mcpResponse.data?.result) {
+      // Às vezes o resultado vem direto no result
+      return { logs: JSON.stringify(mcpResponse.data.result, null, 2) }
+    }
+  } catch (mcpError) {
+    console.error('Erro ao buscar logs via MCP:', mcpError)
+  }
+  
+  // Fallback: tentar API direta
+  try {
+    const response = await api.get(`/api/v1/tasks/${taskId}/logs`)
+    if (response.data?.logs) {
+      return { logs: response.data.logs }
+    }
+  } catch (error) {
+    console.error('Erro ao buscar logs da tarefa:', error)
+  }
+  
+  // Se nenhum método funcionou, retornar mensagem apropriada
+  return { 
+    logs: 'Os logs desta tarefa ainda não estão disponíveis. Aguarde a tarefa ser processada ou tente novamente em alguns instantes.'
+  }
+}
+
+/**
  * Obter configurações de notificação
  */
 export async function getNotificationSettings(): Promise<NotificationSettings> {

@@ -16,6 +16,10 @@ import {
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useWebNotifications } from '@/hooks/useWebNotifications'
+import { useTaskNotifications } from '@/hooks/useTaskNotifications'
+import { TestNotificationForm } from '@/components/notifications/TestNotificationForm'
+import { NotificationHistory } from '@/components/notifications/NotificationHistory'
+import { WebSocketDemo } from '@/components/WebSocketDemo'
 
 export default function NotificationsPage() {
   const router = useRouter()
@@ -27,6 +31,8 @@ export default function NotificationsPage() {
     updatePreferences,
     sendNotification
   } = useWebNotifications()
+  
+  const { isMonitoring, stats } = useTaskNotifications()
 
   const handleTestNotification = () => {
     sendNotification('🔔 Teste de Notificação', {
@@ -373,7 +379,66 @@ export default function NotificationsPage() {
               <li>Não coletamos ou enviamos dados para servidores externos</li>
             </ul>
           </motion.div>
+
+          {/* Status de Monitoramento */}
+          {isMonitoring && stats && (
+            <motion.div
+              variants={itemVariants}
+              className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-6"
+            >
+              <h3 className="font-semibold text-green-900 dark:text-green-100 mb-2 flex items-center gap-2">
+                <Zap className="w-5 h-5" />
+                Monitoramento Ativo
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">{stats.total}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">Total</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">{stats.pending}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">Pendentes</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-yellow-600">{stats.running}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">Executando</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">Concluídas</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-600">{stats.notificationsSent}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">Notificações</div>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </motion.div>
+
+        {/* Seção de Teste Avançado */}
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+            🧪 Laboratório de Notificações
+          </h2>
+          <TestNotificationForm />
+        </div>
+
+        {/* Seção de WebSocket */}
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+            🔌 WebSocket em Tempo Real
+          </h2>
+          <WebSocketDemo />
+        </div>
+
+        {/* Seção de Histórico */}
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+            📜 Histórico de Notificações
+          </h2>
+          <NotificationHistory />
+        </div>
       </div>
     </div>
   )

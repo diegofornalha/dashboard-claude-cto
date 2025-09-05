@@ -1,7 +1,7 @@
 import axios from 'axios'
 
-// Configuração da API - usa porta 8001 pois o servidor está rodando nela
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api/v1'
+// Configuração da API - usa porta 8000 onde o servidor principal está rodando
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
 // Cliente axios configurado
 const api = axios.create({
